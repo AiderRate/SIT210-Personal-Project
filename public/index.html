@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoRa Sensor Data</title>
+    <style>
+        .data {
+            font-family: Arial, sans-serif;
+        }
+
+        .alert {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>LoRa Sensor Data</h1>
+    <div class="data" id="data">
+        Loading...
+    </div>
+    <script>
+        async function fetchData() {
+            const response = await fetch('/api/data');
+            const data = await response.json();
+            const { sensorData, lastDataTime } = data;
+
+            const now = new Date();
+            const lastReceived = new Date(lastDataTime);
+            const diffMinutes = Math.floor((now - lastReceived) / 1000 / 60);
+
+            let html = `
+            <p>GPS Date: ${sensorData.gpsYear}-${sensorData.gpsMonth}-${sensorData.gpsDay}</p>
+            <p>GPS Time: ${sensorData.gpsHour}:${sensorData.gpsMin}:${sensorData.gpsSec}</p>
+            <p>Latitude: ${sensorData.gpsLat}</p>
+            <p>Longitude: ${sensorData.gpsLong}</p>
+            <p>Temperature: ${sensorData.temperature} °C</p>
+            <p>Humidity: ${sensorData.humidity} %</p>
+            <p>Smoke Detector Reading: ${sensorData.smoke_val}</p>
+          `;
+
+            if (diffMinutes >= 2) {
+                html += `<p class="alert">No data received for ${diffMinutes} minutes!</p>`;
+            }
+
+            document.getElementById('data').innerHTML = html;
+        }
+
+        setInterval(fetchData, 5000);
+        fetchData();
+    </script>
+</body>
+</html>
